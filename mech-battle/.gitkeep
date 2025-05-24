@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин виртуальной валюты</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-4 max-w-md">
+        <h1 class="text-2xl font-bold text-center mb-4">Магазин виртуальной валюты</h1>
+        <p class="text-center text-gray-600 mb-6">Покупайте виртуальные монеты для вашего аккаунта!</p>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-4">Выберите пакет</h2>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-medium">100 монет</p>
+                        <p class="text-sm text-gray-500">199 ₽</p>
+                    </div>
+                    <button class="buy-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" data-coins="100" data-price="199">Купить</button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-medium">500 монет</p>
+                        <p class="text-sm text-gray-500">799 ₽</p>
+                    </div>
+                    <button class="buy-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" data-coins="500" data-price="799">Купить</button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-medium">1000 монет</p>
+                        <p class="text-sm text-gray-500">1499 ₽</p>
+                    </div>
+                    <button class="buy-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" data-coins="1000" data-price="1499">Купить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <p id="user-info" class="text-gray-600">Загрузка информации о пользователе...</p>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        // Отображение информации о пользователе
+        const user = tg.initDataUnsafe.user;
+        const userInfo = document.getElementById('user-info');
+        if (user) {
+            userInfo.textContent = `Привет, ${user.first_name}! Ваш баланс: 0 монет`;
+        } else {
+            userInfo.textContent = 'Привет! Ваш баланс: 0 монет';
+        }
+
+        // Обработка кликов по кнопкам покупки
+        document.querySelectorAll('.buy-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const coins = button.getAttribute('data-coins');
+                const price = button.getAttribute('data-price');
+
+                // Подготовка счета для Telegram Payments
+                const invoice = {
+                    chat_id: user ? user.id : null,
+                    title: `${coins} виртуальных монет`,
+                    description: `Покупка ${coins} виртуальных монет для вашего аккаунта`,
+                    payload: `purchase_${coins}_${Date.now()}`,
+                    provider_token: 'YOUR_PAYMENT_PROVIDER_TOKEN', // Замените на реальный токен платежного провайдера
+                    currency: 'RUB',
+                    prices: [{ label: `${coins} монет`, amount: Math.round(parseFloat(price) * 100) }],
+                };
+
+                // Отображение главной кнопки Telegram для оплаты
+                tg.MainButton.text = `Оплатить ${price} ₽`;
+                tg.MainButton.show();
+                tg.MainButton.onClick(() => {
+                    alert(`Инициируется покупка ${coins} монет за ${price} ₽`);
+                    // В реальном приложении используйте tg.sendData или серверный API для обработки платежа
+                    // tg.openInvoice(JSON.stringify(invoice));
+                });
+            });
+        });
+
+        // Развертывание Web App на полный экран
+        tg.expand();
+    </script>
+</body>
+</html>
